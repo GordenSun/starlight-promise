@@ -42,7 +42,7 @@ export const CHARACTERS = {
     color2: '#ffe1b0',
     sprite: 'assets/characters/suqing/uniform/frame_00.webp',
     outfits: {
-      uniform: { label: '校园制服', dir: 'assets/characters/suqing/uniform', frames: 3, fps: 1.0 },
+      uniform: { label: '校园制服', dir: 'assets/characters/suqing/uniform', frames: 2, fps: 1.0 },
       casual: { label: '休闲约会装', dir: 'assets/characters/suqing/casual', frames: 2, fps: 1.0 },
       yukata: { label: '夏日浴衣', dir: 'assets/characters/suqing/yukata', frames: 2, fps: 0.92 },
     },
@@ -64,7 +64,7 @@ export const CHARACTERS = {
     color2: '#ffe14d',
     sprite: 'assets/characters/xiakui/sport/frame_00.webp',
     outfits: {
-      sport: { label: '元气运动装', dir: 'assets/characters/xiakui/sport', frames: 3, fps: 1.25 },
+      sport: { label: '元气运动装', dir: 'assets/characters/xiakui/sport', frames: 2, fps: 1.25 },
       street: { label: '街头休闲', dir: 'assets/characters/xiakui/street', frames: 2, fps: 1.15 },
       summer: { label: '夏日海风', dir: 'assets/characters/xiakui/summer', frames: 2, fps: 1.1 },
     },
@@ -86,7 +86,7 @@ export const CHARACTERS = {
     color2: '#e7f3ff',
     sprite: 'assets/characters/bairuoxue/gown/frame_00.webp',
     outfits: {
-      gown: { label: '霜雪礼裙', dir: 'assets/characters/bairuoxue/gown', frames: 3, fps: 0.8 },
+      gown: { label: '霜雪礼裙', dir: 'assets/characters/bairuoxue/gown', frames: 2, fps: 0.8 },
       casual: { label: '柔蓝私服', dir: 'assets/characters/bairuoxue/casual', frames: 2, fps: 0.85 },
       winter: { label: '初雪长裘', dir: 'assets/characters/bairuoxue/winter', frames: 2, fps: 0.78 },
     },
@@ -108,7 +108,7 @@ export const CHARACTERS = {
     color2: '#f0e4c0',
     sprite: 'assets/characters/shenzhixia/campus/frame_00.webp',
     outfits: {
-      campus: { label: '学院知性', dir: 'assets/characters/shenzhixia/campus', frames: 3, fps: 0.95 },
+      campus: { label: '学院知性', dir: 'assets/characters/shenzhixia/campus', frames: 2, fps: 0.95 },
       casual: { label: '周末休闲', dir: 'assets/characters/shenzhixia/casual', frames: 2, fps: 0.95 },
       kimono: { label: '夏夜和服', dir: 'assets/characters/shenzhixia/kimono', frames: 2, fps: 0.88 },
     },
