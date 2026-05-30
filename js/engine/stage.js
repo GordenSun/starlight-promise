@@ -159,26 +159,18 @@ class Stage {
 
   reset() { this.hideAll(); this.setParticles(null); this.setTint(null); this.clearDim(); }
 
-  // 真·交叉溶解：当前帧始终不透明垫底，下一帧在其上方淡入（z-index 保证压在上面）。
-  // 这样合成结果始终保持完全不透明，避免「两帧都半透明→背景透出」造成的闪烁。
+  // 硬切帧动画：按 playlist（pingpong 往返 1→2→3→2→1…）逐帧瞬间切换，无渐隐渐现。
+  // 同一时刻仅当前帧 opacity=1，其余为 0。
   _renderFrames(c, p) {
     const els = c.frameEls;
     const n = els.length;
-    if (n === 1 || c.playlist.length <= 1) {
-      els.forEach((el, k) => { el.style.opacity = k === 0 ? '1' : '0'; el.style.zIndex = k === 0 ? '2' : '0'; });
-      return;
+    let cur = 0;
+    if (n > 1 && c.playlist.length > 1) {
+      const L = c.playlist.length;
+      const pos = ((p % L) + L) % L;
+      cur = c.playlist[Math.floor(pos)];
     }
-    const L = c.playlist.length;
-    const pos = ((p % L) + L) % L;
-    const i = Math.floor(pos);
-    const frac = pos - i;
-    const cur = c.playlist[i];
-    const nxt = c.playlist[(i + 1) % L];
-    els.forEach((el, k) => {
-      if (k === nxt && k !== cur) { el.style.opacity = frac.toFixed(3); el.style.zIndex = '3'; } // 上层：淡入
-      else if (k === cur) { el.style.opacity = '1'; el.style.zIndex = '2'; }                       // 底层：不透明
-      else { el.style.opacity = '0'; el.style.zIndex = '1'; }
-    });
+    els.forEach((el, k) => { el.style.opacity = (k === cur) ? '1' : '0'; });
   }
 
   // ---------------- 主循环 ----------------
