@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0a1a" />
+  <title>群星之约 · Starlight Promise</title>
+  <meta name="description" content="一款二次元恋爱视觉小说：在星海市，与五位命运中的她相遇、心动、相守。" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="game-root" class="loading">
+
+    <!-- ===== 加载界面 ===== -->
+    <div id="loader" class="loader">
+      <div class="loader-stars"></div>
+      <div class="loader-inner">
+        <div class="loader-title">群 星 之 约</div>
+        <div class="loader-sub">Starlight Promise</div>
+        <div class="loader-bar"><div class="loader-bar-fill" id="loaderFill"></div></div>
+        <div class="loader-tip" id="loaderTip">正在点亮星空…</div>
+      </div>
+    </div>
+
+    <!-- ===== 标题界面 ===== -->
+    <section id="screen-title" class="screen screen-title hidden">
+      <div class="title-bg" id="titleBg"></div>
+      <div class="title-vignette"></div>
+      <div class="title-shooting" id="titleShooting"></div>
+      <div class="title-content">
+        <h1 class="game-logo">
+          <span class="logo-cn">群星之约</span>
+          <span class="logo-en">— STARLIGHT PROMISE —</span>
+        </h1>
+        <p class="title-tagline">在流星划过的夜里，与命运中的她相遇。</p>
+        <nav class="title-menu" id="titleMenu">
+          <button class="tbtn" data-action="new">开 始 新 游 戏</button>
+          <button class="tbtn" data-action="continue">继 续 游 戏</button>
+          <button class="tbtn" data-action="gallery">回 忆 画 廊</button>
+          <button class="tbtn" data-action="settings">设 置</button>
+          <button class="tbtn" data-action="about">关 于</button>
+        </nav>
+      </div>
+      <div class="title-credit">Made with ❤ · 全部美术由 AI 绿幕立绘抠像生成</div>
+    </section>
+
+    <!-- ===== 游戏舞台 ===== -->
+    <section id="screen-game" class="screen screen-game hidden">
+      <div class="stage">
+        <div class="stage-bg" id="stageBg"></div>
+        <div class="stage-bg stage-bg-next" id="stageBgNext"></div>
+        <div class="stage-tint" id="stageTint"></div>
+        <div class="stage-particles" id="stageParticles"></div>
+        <div class="stage-chars" id="stageChars"></div>
+        <div class="stage-flash" id="stageFlash"></div>
+      </div>
+
+      <!-- 顶栏 -->
+      <div class="topbar" id="topbar">
+        <div class="topbar-left">
+          <span class="day-chip" id="dayChip">序章</span>
+          <span class="loc-chip" id="locChip"></span>
+        </div>
+        <div class="topbar-right">
+          <button class="icon-btn" id="btnAuto" title="自动播放">▶ 自动</button>
+          <button class="icon-btn" id="btnSkip" title="快进">» 跳过</button>
+          <button class="icon-btn" id="btnAffection" title="好感度">♥ 心动</button>
+          <button class="icon-btn" id="btnLog" title="回放">☰ 记录</button>
+          <button class="icon-btn" id="btnMenu" title="菜单">⚙ 菜单</button>
+        </div>
+      </div>
+
+      <!-- 对话层 -->
+      <div class="vn-layer" id="vnLayer">
+        <div class="dialogue-box" id="dialogueBox">
+          <div class="nameplate" id="namePlate"><span id="speakerName"></span></div>
+          <div class="dialogue-text" id="dialogueText"></div>
+          <div class="next-indicator" id="nextIndicator">▼</div>
+        </div>
+        <div class="narration-box" id="narrationBox"></div>
+      </div>
+
+      <!-- 选项层 -->
+      <div class="choices-layer hidden" id="choicesLayer"></div>
+
+      <!-- 约会中枢 -->
+      <div class="hub-layer hidden" id="hubLayer"></div>
+    </section>
+
+    <!-- ===== 通用弹层 ===== -->
+    <div id="overlay" class="overlay hidden"></div>
+
+    <!-- 提示气泡 -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- 竖屏旋转提示（仅触屏设备竖屏时显示） -->
+  <div id="rotateHint" class="rotate-hint">
+    <div class="rotate-ico">📱↻</div>
+    <div class="rotate-title">请横屏游玩</div>
+    <div class="rotate-sub">《群星之约》为宽屏视觉小说，<br>把手机横过来，体验更佳 ✨</div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
