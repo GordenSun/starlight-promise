@@ -20,7 +20,7 @@ export const CHARACTERS = {
     color2: '#ffd56b',
     sprite: 'assets/characters/lingye/duty/frame_00.webp',
     outfits: {
-      duty: { label: '夜色执掌', dir: 'assets/characters/lingye/duty', frames: 3, fps: 0.85 },
+      duty: { label: '夜色执掌', dir: 'assets/characters/lingye/duty', frames: 2, fps: 0.85 },
       evening: { label: '酒红晚礼服', dir: 'assets/characters/lingye/evening', frames: 2, fps: 0.8 },
       coat: { label: '微醺私服', dir: 'assets/characters/lingye/coat', frames: 2, fps: 0.8 },
     },

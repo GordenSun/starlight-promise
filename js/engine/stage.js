@@ -159,18 +159,26 @@ class Stage {
 
   reset() { this.hideAll(); this.setParticles(null); this.setTint(null); this.clearDim(); }
 
-  // 设置某角色当前帧的交叉淡入透明度
+  // 真·交叉溶解：当前帧始终不透明垫底，下一帧在其上方淡入（z-index 保证压在上面）。
+  // 这样合成结果始终保持完全不透明，避免「两帧都半透明→背景透出」造成的闪烁。
   _renderFrames(c, p) {
+    const els = c.frameEls;
+    const n = els.length;
+    if (n === 1 || c.playlist.length <= 1) {
+      els.forEach((el, k) => { el.style.opacity = k === 0 ? '1' : '0'; el.style.zIndex = k === 0 ? '2' : '0'; });
+      return;
+    }
     const L = c.playlist.length;
-    if (L === 1 || c.frameEls.length === 1) { c.frameEls.forEach((el, k) => el.style.opacity = k === 0 ? 1 : 0); return; }
     const pos = ((p % L) + L) % L;
     const i = Math.floor(pos);
     const frac = pos - i;
-    const a = c.playlist[i];
-    const b = c.playlist[(i + 1) % L];
-    const w = new Array(c.frameEls.length).fill(0);
-    if (a === b) w[a] = 1; else { w[a] += (1 - frac); w[b] += frac; }
-    c.frameEls.forEach((el, k) => { el.style.opacity = w[k].toFixed(3); });
+    const cur = c.playlist[i];
+    const nxt = c.playlist[(i + 1) % L];
+    els.forEach((el, k) => {
+      if (k === nxt && k !== cur) { el.style.opacity = frac.toFixed(3); el.style.zIndex = '3'; } // 上层：淡入
+      else if (k === cur) { el.style.opacity = '1'; el.style.zIndex = '2'; }                       // 底层：不透明
+      else { el.style.opacity = '0'; el.style.zIndex = '1'; }
+    });
   }
 
   // ---------------- 主循环 ----------------

@@ -125,7 +125,7 @@ img{display:block;}
 .char.show{opacity:1;}
 .char-inner{position:relative;height:100%;transform-origin:bottom center;will-change:transform;
   transition:filter .4s ease;filter:drop-shadow(0 24px 30px rgba(0,0,0,.5));}
-.char-inner>img.cf{display:block;height:100%;width:auto;pointer-events:none;-webkit-user-drag:none;will-change:opacity;}
+.char-inner>img.cf{display:block;height:100%;width:auto;position:relative;pointer-events:none;-webkit-user-drag:none;will-change:opacity;backface-visibility:hidden;}
 .char-inner>img.cf:not(:first-of-type){position:absolute;top:0;left:0;}
 .char.dim .char-inner{filter:drop-shadow(0 18px 24px rgba(0,0,0,.5)) brightness(.55) saturate(.85);}
 .char.speaking .char-inner{filter:drop-shadow(0 22px 30px rgba(0,0,0,.55)) brightness(1.05);}
