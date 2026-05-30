@@ -5,13 +5,14 @@
 export const GAME = {
   title: '群星之约',
   titleEn: 'Starlight Promise',
-  version: '1.0.0',
-  totalDays: 12,            // 日常阶段总天数
+  version: '2.0.0',
+  totalDays: 16,            // 日常阶段总天数
+  datesPerHeroine: 5,       // 每位女主可触发的剧情约会次数（之后转为日常 + 可表白）
   saveSlots: 6,
   storageKey: 'starlight_promise_v1',
 };
 
-// 可前往的约会地点 —— 每个地点对应一位女主
+// 可前往的约会地点 —— 每个地点对应一位女主（约会内部会切换到更多场景）
 export const LOCATIONS = [
   { id: 'cafe',      name: '微光咖啡书屋', bg: 'cafe',      heroine: 'suqing',     desc: '书香与咖啡交织的午后角落' },
   { id: 'court',     name: '天台篮球场',   bg: 'court',     heroine: 'xiakui',     desc: '汗水、阳光与笑声的舞台' },
@@ -22,16 +23,33 @@ export const LOCATIONS = [
 
 // 背景资源表
 export const BACKGROUNDS = {
-  title:      'assets/backgrounds/bg_title.jpg',
-  cafe:       'assets/backgrounds/bg_cafe.jpg',
-  campus:     'assets/backgrounds/bg_campus.jpg',
-  city_night: 'assets/backgrounds/bg_city_night.jpg',
-  penthouse:  'assets/backgrounds/bg_penthouse.jpg',
-  park:       'assets/backgrounds/bg_park.jpg',
-  court:      'assets/backgrounds/bg_court.jpg',
-  library:    'assets/backgrounds/bg_library.jpg',
-  apartment:  'assets/backgrounds/bg_apartment.jpg',
-  musichall:  'assets/backgrounds/bg_musichall.jpg',
+  title:       'assets/backgrounds/bg_title.jpg',
+  cafe:        'assets/backgrounds/bg_cafe.jpg',
+  campus:      'assets/backgrounds/bg_campus.jpg',
+  city_night:  'assets/backgrounds/bg_city_night.jpg',
+  penthouse:   'assets/backgrounds/bg_penthouse.jpg',
+  park:        'assets/backgrounds/bg_park.jpg',
+  court:       'assets/backgrounds/bg_court.jpg',
+  library:     'assets/backgrounds/bg_library.jpg',
+  apartment:   'assets/backgrounds/bg_apartment.jpg',
+  musichall:   'assets/backgrounds/bg_musichall.jpg',
+  // —— 新增：约会外景，为剧情提供更丰富的舞台 ——
+  festival:    'assets/backgrounds/bg_festival.jpg',    // 夏日祭夜市
+  seaside:     'assets/backgrounds/bg_seaside.jpg',     // 黄昏海边
+  ferris:      'assets/backgrounds/bg_ferris.jpg',      // 夜晚摩天轮游乐园
+  aquarium:    'assets/backgrounds/bg_aquarium.jpg',    // 水族馆蓝色长廊
+  fireworks:   'assets/backgrounds/bg_fireworks.jpg',   // 河畔烟花夜
+  snow:        'assets/backgrounds/bg_snow.jpg',        // 雪夜街道
+  planetarium: 'assets/backgrounds/bg_planetarium.jpg', // 星空观测台
+};
+
+// 场景中文名（画廊用）
+export const SCENE_NAMES = {
+  title: '群星之夜', cafe: '微光咖啡书屋', campus: '樱花校园', city_night: '霓虹夜街',
+  penthouse: '云顶酒廊', park: '黄昏河滨', court: '天台篮球场', library: '星海图书馆',
+  apartment: '我的小屋', musichall: '白鸢琴室', festival: '夏日祭夜市', seaside: '黄昏海岸',
+  ferris: '摩天轮之夜', aquarium: '深蓝水族馆', fireworks: '河畔烟花', snow: '初雪街道',
+  planetarium: '星空观测台',
 };
 
 export const DEFAULT_SETTINGS = {

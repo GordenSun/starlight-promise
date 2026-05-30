@@ -15,3 +15,6 @@ venv/
 /_site/
 /sprites/
 *.log
+
+# 绿幕动画源帧（~50MB，可由 GenerateImage 重新生成，游戏运行不依赖）
+/anim_src/

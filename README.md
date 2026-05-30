@@ -16,15 +16,16 @@
 ## ✨ 特色
 
 - **五位风格鲜明的女主**，各有专属主题色、场景、剧情线与结局：
-  | 角色 | 定位 | 关键词 |
-  | --- | --- | --- |
-  | 苏晴 | 清纯学妹 | 书店 · 热可可 · 暗恋成真 |
-  | 夏葵 | 元气少女 | 篮球 · 阳光 · 拼尽全力 |
-  | 白若雪 | 高冷傲娇 | 钢琴 · 初雪 · 嘴硬心软 |
-  | 沈知夏 | 知性学姐 | 图书馆 · 雨声 · 温柔治愈 |
-  | 凌夜 | 魅惑御姐 | 顶楼酒廊 · 博弈 · 危险心动 |
-- **绿幕立绘抠像 + 逐帧活体动画**：所有人物均为「绿幕背景立绘」抠出透明人物，再以逐帧算法实时驱动**呼吸、摇摆、入场、说话浮动、情绪反应**（雀跃 / 惊吓 / 点头 / 颤抖）。
-- **完整 galgame 系统**：打字机对话、分支选项、好感度系统、约会中枢（天数 / 地点选择）、表白与多结局、自动播放 / 跳过、对话回放、存读档（6 槽 + 自动存档）、回忆画廊。
+  | 角色 | 定位 | 关键词 | 三套装扮 |
+  | --- | --- | --- | --- |
+  | 苏晴 | 清纯学妹 | 书店 · 热可可 · 暗恋成真 | 校园制服 / 休闲约会 / 夏日浴衣 |
+  | 夏葵 | 元气少女 | 篮球 · 阳光 · 拼尽全力 | 元气运动 / 街头休闲 / 夏日海风 |
+  | 白若雪 | 高冷傲娇 | 钢琴 · 初雪 · 嘴硬心软 | 霜雪礼裙 / 柔蓝私服 / 初雪长裘 |
+  | 沈知夏 | 知性学姐 | 图书馆 · 雨声 · 温柔治愈 | 学院知性 / 周末休闲 / 夏夜和服 |
+  | 凌夜 | 魅惑御姐 | 顶楼酒廊 · 博弈 · 危险心动 | 夜色执掌 / 酒红晚礼 / 微醺私服 |
+- **真 · 序列帧活体动画**：每套装扮都由「纯绿幕逐帧生成」——以上一帧为参考生成下一帧，再统一抠像、并集对齐、归一缩放，得到锚定一致的呼吸/摇摆序列帧；运行时按乒乓顺序交叉淡入播放，并叠加入场、说话浮动、情绪反应（雀跃 / 惊吓 / 点头 / 颤抖）。
+- **每位女主 3 套装扮 × 多场景叙事**：每条线 5 段约会构成完整情感弧线，沿途切换不同装扮与外景（夏日祭、海岸、摩天轮、水族馆、河畔烟花、初雪、星空观测台……），15 套立绘 + 17 张场景原画。
+- **完整 galgame 系统**：打字机对话、分支选项、好感度系统、约会中枢（天数 / 地点选择）、表白与多结局、自动播放 / 跳过、对话回放、存读档（6 槽 + 自动存档）、回忆画廊（多套立绘 + 场景原画 + 结局 CG）。
 - **程序化音乐与音效**：背景音乐与所有音效均由 **Web Audio API 实时合成**（五声音阶 + 柔和音色 + 混响），不含任何外部音频文件。
 - **零构建、零外部依赖**：纯 HTML + CSS + 原生 ES Module，使用相对路径，开箱即可部署到 GitHub Pages 子路径。
 
@@ -49,25 +50,27 @@ python3 -m http.server 8000
 这是本项目的核心制作流程，工具位于 `tools/`：
 
 ```
-①  AI 生成纯绿幕背景全身立绘 (assets/characters_raw/*.png)
+①  纯绿幕全身立绘：先生成基准帧，再「以上一帧为参考」生成呼吸/摇摆下一帧
+    (anim_src/<角色>/<装扮>/0.png, 1.png, ……  ——  纯绿背景)
         │
-        ▼   tools/chroma_key.py  —— 绿幕抠像
-②  透明背景人物 PNG（母版）
+        ▼   tools/make_anim.py  —— 帧动画抠像 + 并集对齐
+②  锚定一致的透明序列帧 (assets/characters/<角色>/<装扮>/frame_00.webp …)
         │
-        ├─►  发布优化：人物转 WebP（保留透明 + 体积 ↓80%），背景/CG 转 JPEG
-        │       └─►  游戏运行时：单张透明立绘 + 逐帧实时变换驱动活体动画 (js/engine/stage.js)
-        │
-        └─►  tools/make_sprites.py  —— 离线烘焙
-③  呼吸/摇摆循环「序列帧 + 精灵图」(*_sheet.png + *_sheet.json)
+        └─►  游戏运行时：多帧叠放，按乒乓顺序交叉淡入 (js/engine/stage.js)
+             叠加入场 / 说话浮动 / 情绪反应等实时变换
 ```
 
-### 1) 绿幕抠像
+> `tools/make_anim.py` 与单图抠像 `tools/chroma_key.py` 的区别：前者对**一组帧**取 alpha 包围盒的**并集**统一裁剪与缩放，保证逐帧之间人物锚定一致——这是干净帧动画的关键（避免抖动/错位）。
+
+### 1) 帧动画抠像 + 对齐（核心）
 
 ```bash
-python3 tools/chroma_key.py assets/characters_raw -o assets/characters --height 1400
+# 把一套装扮的绿幕帧（按文件名为播放顺序）抠像并对齐，输出 webp 序列帧
+python3 tools/make_anim.py anim_src/suqing/yukata -o assets/characters/suqing/yukata --height 1400 --webp
 ```
-采样四角估计绿幕色 → `greenness = G - max(R,B)` 联合背景相似度计算软边 alpha →
-去绿溢色(despill) → 羽化收边去毛刺 → 自动裁剪人物外接框 → 统一高度，输出透明 PNG 母版。
+采样四角估计绿幕色 → `greenness = G - max(R,B)` 联合背景相似度计算软边 alpha → 去绿溢色(despill) →
+羽化收边 → 形态学去噪剔除孤立绿斑 → 取**所有帧并集包围盒**统一裁剪 → 归一高度，输出锚定一致的透明序列帧。
+单张立绘抠像仍可用 `tools/chroma_key.py`。
 
 ### 2) 发布优化（Web 提速）
 
@@ -80,14 +83,12 @@ cwebp -q 88 -alpha_q 95 assets/characters/char_suqing.png -o assets/characters/c
 sips -s format jpeg -s formatOptions 86 assets/backgrounds/bg_cafe.png --out assets/backgrounds/bg_cafe.jpg
 ```
 
-### 3) 烘焙序列帧 / 精灵图（可选）
+### 3) 精灵图烘焙（可选）
 
 ```bash
 python3 tools/make_sprites.py assets/characters/char_suqing.png -o sprites --frames 24 --fps 12
 ```
-把透明立绘母版烘焙成「呼吸 + 摇摆」的循环序列帧，并拼为精灵图 + JSON 元数据。
-> 游戏运行时默认用「单图 + 逐帧实时变换」实现同样的动画（体积更小、更清晰）；
-> 本工具用于产出可直接播放的离线序列帧资源，二者动画原理一致。
+把透明立绘烘焙成离线可直接播放的「呼吸 + 摇摆」精灵图 + JSON 元数据（演示用途）。
 
 依赖：`Pillow`、`numpy`（`pip install pillow numpy`）。
 
@@ -121,11 +122,12 @@ python3 tools/make_sprites.py assets/characters/char_suqing.png -o sprites --fra
 │   ├── data/               # 角色 / 配置 / 剧本（内容数据）
 │   └── engine/             # 引擎：舞台动画 / 对话运行时 / 中枢 / 界面 / 音频 / 存档
 ├── assets/
-│   ├── characters/         # 抠像后的透明立绘（游戏使用）
-│   ├── characters_raw/     # 绿幕原始立绘（流水线输入）
-│   ├── backgrounds/        # 场景背景
+│   ├── characters/<角色>/<装扮>/frame_NN.webp   # 抠像对齐后的序列帧（游戏使用）
+│   ├── characters_raw/     # 早期绿幕原始立绘
+│   ├── backgrounds/        # 17 张场景背景
 │   └── cg/                 # 结局 CG
-├── tools/                  # chroma_key.py / make_sprites.py
+├── anim_src/<角色>/<装扮>/ # 绿幕动画源帧（不入库、不发布；可重新生成）
+├── tools/                  # make_anim.py / chroma_key.py / make_sprites.py
 └── .github/workflows/      # GitHub Pages 部署
 ```
 
@@ -140,4 +142,4 @@ python3 tools/make_sprites.py assets/characters/char_suqing.png -o sprites --fra
 
 剧情、人物设定、世界观、界面与代码均为原创实现；全部美术由 AI 以「绿幕立绘」方式生成后，经本项目流水线抠像处理。仅供学习与演示。
 
-— v1.0.0
+— v2.0.0

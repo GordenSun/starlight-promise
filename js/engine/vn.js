@@ -60,12 +60,12 @@ class VN {
       if (s.bg) { bg = s.bg; tint = s.tint ?? tint; particles = s.particles ?? particles; }
       if (s.tint !== undefined) tint = s.tint;
       if (s.particles !== undefined) particles = s.particles;
-      if (s.show) { const e = shown.find(x => x.id === s.show); if (e) e.pos = s.at || e.pos; else shown.push({ id: s.show, pos: s.at || 'center' }); }
+      if (s.show) { const e = shown.find(x => x.id === s.show); if (e) { e.pos = s.at || e.pos; if (s.outfit) e.outfit = s.outfit; } else shown.push({ id: s.show, pos: s.at || 'center', outfit: s.outfit }); }
       if (s.hide) { const idx = shown.findIndex(x => x.id === s.hide); if (idx >= 0) shown.splice(idx, 1); }
       if (s.hideAll) shown.length = 0;
     }
     if (bg) stage.setBackground(bg, { tint, particles });
-    shown.forEach(x => stage.showChar(x.id, x.pos));
+    shown.forEach(x => stage.showChar(x.id, x.pos, x.outfit));
   }
 
   // ---------- 主推进循环 ----------
@@ -100,7 +100,7 @@ class VN {
     if (s.bg) { stage.setBackground(s.bg, s); unlock('bgs', s.bg); return 'next'; }
     if (s.tint !== undefined && Object.keys(s).length === 1) { stage.setTint(s.tint); return 'next'; }
     if (s.particles !== undefined && Object.keys(s).length === 1) { stage.setParticles(s.particles); return 'next'; }
-    if (s.show) { stage.showChar(s.show, s.at || 'center', s.expr); unlock('chars', s.show); return 'next'; }
+    if (s.show) { stage.showChar(s.show, s.at || 'center', s.outfit); unlock('chars', s.show); return 'next'; }
     if (s.hide) { stage.hideChar(s.hide); return 'next'; }
     if (s.hideAll) { stage.hideAll(); return 'next'; }
     if (s.move) { stage.move(s.move, s.to); return 'next'; }

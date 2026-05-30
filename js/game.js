@@ -35,6 +35,7 @@ class Game {
 
     // 测试辅助：window.__test.jump('date_suqing_1')
     window.vn = vn;
+    window.stage = stage;
     window.__test = {
       jump: (s, step = 0) => {
         this.state = this.state || save.newState('测试');
@@ -142,14 +143,15 @@ class Game {
   }
 
   buildHubPlan() {
+    const DATES = GAME.datesPerHeroine;
     return LOCATIONS.map(loc => {
       const h = loc.heroine;
       const done = this.state.eventsDone[h] || 0;
       const aff = this.state.affection[h] || 0;
       let kind, label, badgeType = 'go';
-      if (done >= 3 && aff >= CONFESS_THRESHOLD) { kind = 'confess'; label = '❤ 向她表白'; badgeType = 'heart'; }
-      else if (done < 3) { kind = 'date'; label = `第 ${done + 1} 次约会`; }
-      else { kind = 'hang'; label = '再多了解一些'; badgeType = 'soft'; }
+      if (done >= DATES && aff >= CONFESS_THRESHOLD) { kind = 'confess'; label = '❤ 向她表白'; badgeType = 'heart'; }
+      else if (done >= DATES) { kind = 'hang'; label = '再多走近一点'; badgeType = 'soft'; }
+      else { kind = 'date'; label = `第 ${done + 1} / ${DATES} 次约会`; }
       return { loc, heroine: h, def: CHARACTERS[h], done, aff, kind, label, badgeType };
     });
   }
@@ -177,7 +179,7 @@ class Game {
     const p = this.pending; this.pending = null;
     if (!p) { this.enterHub(); return; }
     if (p.kind === 'confess') return; // 表白场景会直接进入结局
-    if (p.kind === 'date') this.state.eventsDone[p.heroine] = Math.min(3, (this.state.eventsDone[p.heroine] || 0) + 1);
+    if (p.kind === 'date') this.state.eventsDone[p.heroine] = Math.min(GAME.datesPerHeroine, (this.state.eventsDone[p.heroine] || 0) + 1);
     this.state.day += 1;
     save.autosave(this.state, this._summary());
     this.enterHub();

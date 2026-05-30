@@ -6,9 +6,22 @@ import { audio } from './engine/audio.js';
 import { BACKGROUNDS, LOADING_TIPS } from './data/config.js';
 import { CHARACTERS } from './data/characters.js';
 
+function charFrameUrls() {
+  const urls = [];
+  for (const c of Object.values(CHARACTERS)) {
+    if (c.outfits) {
+      for (const o of Object.values(c.outfits)) {
+        for (let i = 0; i < o.frames; i++) urls.push(`${o.dir}/frame_${String(i).padStart(2, '0')}.webp`);
+      }
+    }
+    if (c.sprite) urls.push(c.sprite);
+  }
+  return [...new Set(urls)];
+}
+
 const preloadList = [
   ...Object.values(BACKGROUNDS),
-  ...Object.values(CHARACTERS).map(c => c.sprite),
+  ...charFrameUrls(),
 ];
 
 function preload(onProgress) {

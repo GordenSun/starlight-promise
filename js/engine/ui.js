@@ -4,7 +4,7 @@
 import * as save from './save.js';
 import { audio } from './audio.js';
 import { CHARACTERS, HEROINE_IDS, PROTAGONIST, stageOf, MAX_AFFECTION } from '../data/characters.js';
-import { GAME, BACKGROUNDS, LOCATIONS, DEFAULT_SETTINGS } from '../data/config.js';
+import { GAME, BACKGROUNDS, LOCATIONS, DEFAULT_SETTINGS, SCENE_NAMES } from '../data/config.js';
 
 let game = null;
 const overlay = () => document.getElementById('overlay');
@@ -192,14 +192,27 @@ export function openLog(state) {
 }
 
 // ---------------- 画廊 ----------------
+function outfitCells() {
+  const cells = [];
+  for (const id of HEROINE_IDS) {
+    const def = CHARACTERS[id];
+    const outfits = def.outfits || {};
+    for (const key of Object.keys(outfits)) {
+      const o = outfits[key];
+      cells.push({ id: `${id}_${key}`, img: `${o.dir}/frame_00.webp`, cap: `${def.name} · ${o.label}`, type: 'chars' });
+    }
+  }
+  return cells;
+}
 const GAL = {
-  characters: HEROINE_IDS.map(id => ({ id, img: CHARACTERS[id].sprite, cap: CHARACTERS[id].name + ' · ' + CHARACTERS[id].archetype, type: 'chars' })),
+  characters: outfitCells(),
   scenes: Object.keys(BACKGROUNDS).map(k => ({ id: k, img: BACKGROUNDS[k], cap: sceneName(k), type: 'bgs' })),
   cg: HEROINE_IDS.map(id => ({ id: 'cg_' + id + '_end', img: 'assets/cg/cg_' + id + '_end.jpg', cap: CHARACTERS[id].name + ' · 结局', type: 'cg' })),
 };
 function sceneName(k) {
+  if (SCENE_NAMES[k]) return SCENE_NAMES[k];
   const loc = LOCATIONS.find(l => l.bg === k); if (loc) return loc.name;
-  return ({ title: '群星之夜', campus: '樱花校园', city_night: '霓虹夜街', park: '黄昏河滨', apartment: '我的小屋' })[k] || k;
+  return k;
 }
 
 export function openGallery(tab = 'characters') {

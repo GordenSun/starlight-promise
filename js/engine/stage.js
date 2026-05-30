@@ -1,16 +1,25 @@
 // =========================================================
-// 舞台 —— 背景 + 人物立绘 + 逐帧程序化动画
-// 动画完全由 requestAnimationFrame 每帧计算 transform 生成：
-//   呼吸(scaleY) + 摇摆(rotate/位移) + 入场 + 说话浮动 + 情绪反应(雀跃/惊吓/点头)
-// 配合抠像得到的透明 PNG，即为「序列帧」式的活体立绘动画。
+// 舞台 —— 背景 + 人物立绘 + 真·帧动画
+// 人物动画由「绿幕逐帧生成 → 抠像对齐」得到的多帧透明序列驱动：
+//   idle 帧序列按乒乓顺序交叉淡入（呼吸/摇摆），是真正的帧动画而非单纯变换。
+//   叠加极轻微的浮动 + 入场/移动/说话强调 + 事件情绪反应。
 // =========================================================
 import { CHARACTERS } from '../data/characters.js';
 import { BACKGROUNDS } from '../data/config.js';
 
 const POS = { farleft: 24, left: 33, center: 50, right: 67, farright: 76 };
 
+// 乒乓播放序列：0,1,2,1 → 循环（呼吸往返）
+function pingpong(n) {
+  if (n <= 1) return [0];
+  const seq = [];
+  for (let i = 0; i < n; i++) seq.push(i);
+  for (let i = n - 2; i >= 1; i--) seq.push(i);
+  return seq;
+}
+
 class Stage {
-  constructor() { this.chars = new Map(); this.running = false; this.cur = 'bg2'; }
+  constructor() { this.chars = new Map(); this.running = false; }
 
   init() {
     this.bgA = document.getElementById('stageBg');
@@ -21,7 +30,7 @@ class Stage {
     this.flashEl = document.getElementById('stageFlash');
     this.stageEl = this.layer.parentElement;
     this._activeBg = this.bgA;
-    if (!this.running) { this.running = true; this.t0 = performance.now(); this._loop(); }
+    if (!this.running) { this.running = true; this.t0 = performance.now(); this.lastNow = this.t0; this._loop(); }
   }
 
   // ---------------- 背景 ----------------
@@ -31,7 +40,6 @@ class Stage {
     const hide = this._activeBg;
     show.style.backgroundImage = `url("${url}")`;
     show.classList.toggle('kenburns', !!opts.kenburns);
-    // 强制重绘后淡入
     void show.offsetWidth;
     show.classList.add('show');
     hide.classList.remove('show');
@@ -52,42 +60,67 @@ class Stage {
     this._ptype = type;
     this.particles.innerHTML = '';
     if (!type) return;
-    const n = type === 'petal' ? 16 : 18;
+    const rises = type === 'spark';          // 光点上升；花瓣/雪花下落
+    const n = type === 'petal' ? 16 : type === 'snow' ? 30 : 18;
     for (let i = 0; i < n; i++) {
       const e = document.createElement('div');
-      e.className = type === 'petal' ? 'petal' : 'spark';
+      e.className = type;
       e.style.left = Math.random() * 100 + '%';
-      const dur = (type === 'petal' ? 9 : 7) + Math.random() * 7;
+      const dur = (type === 'petal' ? 9 : type === 'snow' ? 10 : 7) + Math.random() * 7;
       e.style.animationDuration = dur + 's';
       e.style.animationDelay = -Math.random() * dur + 's';
       if (type === 'petal') e.style.transform = `scale(${0.6 + Math.random() * 0.8})`;
+      else if (type === 'snow') e.style.transform = `scale(${0.5 + Math.random() * 1.1})`;
       else { e.style.bottom = '0'; e.style.top = 'auto'; }
       this.particles.appendChild(e);
     }
   }
 
   // ---------------- 人物 ----------------
-  showChar(id, pos = 'center', expr = 'normal') {
+  _outfitOf(def, outfit) {
+    const o = def.outfits || {};
+    const key = outfit && o[outfit] ? outfit : (def.defaultOutfit || Object.keys(o)[0]);
+    return o[key] ? { key, ...o[key] } : null;
+  }
+
+  showChar(id, pos = 'center', outfit = null) {
     const def = CHARACTERS[id];
     if (!def) return;
     let c = this.chars.get(id);
+    const od = this._outfitOf(def, outfit);
+
+    if (c && od && c.outfitKey !== od.key) { // 切换服装：移除重建
+      c.el.remove(); this.chars.delete(id); c = null;
+    }
+
     if (!c) {
       const el = document.createElement('div');
       el.className = 'char';
-      el.innerHTML = `<div class="blush"></div><img src="${def.sprite}" alt="${def.name}"><div class="emote"></div>`;
+      const frames = od ? od.frames : 1;
+      let imgs = '';
+      for (let i = 0; i < frames; i++) {
+        const src = od ? `${od.dir}/frame_${String(i).padStart(2, '0')}.webp` : def.sprite;
+        imgs += `<img class="cf" src="${src}" alt="${def.name}" draggable="false">`;
+      }
+      el.innerHTML = `<div class="char-inner"><div class="blush"></div>${imgs}<div class="emote"></div></div>`;
       this.layer.appendChild(el);
+      const frameEls = [...el.querySelectorAll('img.cf')];
       c = {
-        id, el, img: el.querySelector('img'),
+        id, el, inner: el.querySelector('.char-inner'),
+        frameEls, playlist: pingpong(frameEls.length),
+        fps: od ? (od.fps || 1.0) : 1.0,
+        outfitKey: od ? od.key : null,
         blushEl: el.querySelector('.blush'), emoteEl: el.querySelector('.emote'),
         scale: def.scale || 1, offsetY: def.offsetY || 0,
-        phase: Math.random() * Math.PI * 2,
-        breathe: 0.85 + Math.random() * 0.2,
-        sway: 0.8 + Math.random() * 0.25,
+        phase: Math.random() * 100,
+        floatPhase: Math.random() * Math.PI * 2,
+        floatRate: 0.5 + Math.random() * 0.25,
         leftCur: POS[pos] ?? 50, leftTgt: POS[pos] ?? 50,
-        enter: 0, enterFrom: pos.includes('right') || pos === 'center' ? 1 : -1,
-        speaking: false, blush: false, reaction: null, shown: true, opacity: 0,
+        enter: 0, enterFrom: (pos.includes('right')) ? 1 : (pos.includes('left') ? -1 : (Math.random() < 0.5 ? -1 : 1)),
+        speaking: false, blush: false, reaction: null, shown: true,
       };
       this.chars.set(id, c);
+      this._renderFrames(c, 0); // 初始第一帧可见
     } else {
       c.leftTgt = POS[pos] ?? 50; c.shown = true;
     }
@@ -126,57 +159,75 @@ class Stage {
 
   reset() { this.hideAll(); this.setParticles(null); this.setTint(null); this.clearDim(); }
 
-  // ---------------- 主循环（逐帧计算 transform） ----------------
+  // 设置某角色当前帧的交叉淡入透明度
+  _renderFrames(c, p) {
+    const L = c.playlist.length;
+    if (L === 1 || c.frameEls.length === 1) { c.frameEls.forEach((el, k) => el.style.opacity = k === 0 ? 1 : 0); return; }
+    const pos = ((p % L) + L) % L;
+    const i = Math.floor(pos);
+    const frac = pos - i;
+    const a = c.playlist[i];
+    const b = c.playlist[(i + 1) % L];
+    const w = new Array(c.frameEls.length).fill(0);
+    if (a === b) w[a] = 1; else { w[a] += (1 - frac); w[b] += frac; }
+    c.frameEls.forEach((el, k) => { el.style.opacity = w[k].toFixed(3); });
+  }
+
+  // ---------------- 主循环 ----------------
   _loop() {
     const now = performance.now();
+    let dt = (now - this.lastNow) / 1000;
+    this.lastNow = now;
+    if (dt > 0.1) dt = 0.1; // 防止后台标签回来时跳变
     const t = (now - this.t0) / 1000;
     const stageH = this.stageEl ? this.stageEl.clientHeight : 720;
+
     for (const c of this.chars.values()) {
-      // 入场过渡
-      c.enter += (1 - c.enter) * 0.08;
+      // —— 帧动画推进（呼吸/摇摆）——
+      c.phase += dt * c.fps;
+      this._renderFrames(c, c.phase);
+
+      // —— 入场 / 位置 ——
+      c.enter += (1 - c.enter) * Math.min(1, dt * 6);
       const enterMiss = 1 - c.enter;
-      // 位置插值
-      c.leftCur += (c.leftTgt - c.leftCur) * 0.12;
+      c.leftCur += (c.leftTgt - c.leftCur) * Math.min(1, dt * 7);
       c.el.style.left = c.leftCur + '%';
 
-      // 呼吸
-      const breath = Math.sin(t * c.breathe + c.phase);
-      const scaleY = 1 + breath * 0.013;
-      const scaleBob = 1 + breath * 0.004;
-      // 摇摆
-      const sway = Math.sin(t * c.sway * 0.6 + c.phase);
-      let rot = sway * 0.7;
-      let dx = sway * 4 + enterMiss * c.enterFrom * 80;
-      let dy = (c.offsetY / 100) * stageH;
-      // 说话浮动
-      if (c.speaking) dy += -Math.abs(Math.sin(t * 7)) * 3 - 2;
+      // —— 极轻微浮动（增添重量感，非弹跳）——
+      const float = Math.sin(t * c.floatRate + c.floatPhase);
+      let dx = enterMiss * c.enterFrom * 70;
+      let dy = (c.offsetY / 100) * stageH + float * 2.2;
+      let rot = float * 0.25;
+      let scaleMul = 1;
 
-      // 情绪反应
+      if (c.speaking) dy += -1.5; // 说话时略上抬（强调）
+
+      // —— 事件情绪反应（短暂）——
       if (c.reaction) {
         const rt = (now - c.reaction.start) / 1000;
-        const p = rt / this._reactDur(c.reaction.type);
+        const dur = this._reactDur(c.reaction.type);
+        const p = rt / dur;
         if (p >= 1) c.reaction = null;
         else {
-          const env = Math.sin(Math.min(p, 1) * Math.PI); // 0→1→0 包络
+          const env = Math.sin(Math.min(p, 1) * Math.PI);
           switch (c.reaction.type) {
-            case 'bounce': dy -= Math.abs(Math.sin(p * Math.PI * 3)) * 26 * (1 - p); break;
-            case 'shake':  dx += Math.sin(p * Math.PI * 18) * 12 * (1 - p); break;
-            case 'nod':    rot += Math.sin(p * Math.PI * 4) * 4 * env; dy += env * 4; break;
-            case 'tremble':dx += Math.sin(p * Math.PI * 26) * 4 * (1 - p); break;
-            case 'pop':    { const s = 1 + env * 0.06; rot += sway * 0; c._popS = s; } break;
+            case 'bounce': dy -= Math.abs(Math.sin(p * Math.PI * 2)) * 22 * (1 - p); break;
+            case 'shake':  dx += Math.sin(p * Math.PI * 16) * 11 * (1 - p); break;
+            case 'nod':    rot += Math.sin(p * Math.PI * 4) * 3.4 * env; dy += env * 4; break;
+            case 'tremble':dx += Math.sin(p * Math.PI * 26) * 3.6 * (1 - p); break;
+            case 'pop':    scaleMul = 1 + env * 0.05; break;
           }
         }
       }
-      const pop = c._popS || 1; c._popS = 1;
 
-      const sc = c.scale * scaleBob * pop;
-      c.el.style.transform =
-        `translate(-50%, ${dy}px) translateX(${dx}px) rotate(${rot.toFixed(3)}deg) scale(${sc.toFixed(4)}) scaleY(${scaleY.toFixed(4)})`;
+      // 整体淡入/淡出交由 CSS .show 过渡；此处只驱动位移/旋转/缩放
+      c.inner.style.transform =
+        `translateX(${dx.toFixed(2)}px) translateY(${dy.toFixed(2)}px) rotate(${rot.toFixed(3)}deg) scale(${(c.scale * scaleMul).toFixed(4)})`;
     }
     requestAnimationFrame(() => this._loop());
   }
 
-  _reactDur(type) { return type === 'bounce' ? 0.9 : type === 'shake' ? 0.6 : type === 'nod' ? 0.7 : type === 'pop' ? 0.4 : 0.6; }
+  _reactDur(type) { return type === 'bounce' ? 0.85 : type === 'shake' ? 0.6 : type === 'nod' ? 0.7 : type === 'pop' ? 0.4 : 0.6; }
 }
 
 export const stage = new Stage();
