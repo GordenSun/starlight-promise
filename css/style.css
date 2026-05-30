@@ -340,6 +340,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 @media (orientation:portrait) and (min-width:641px){
   .dialogue-text{font-size:22px;}
 }
+/* 手机横屏（触屏 + 矮视口）：物理屏小，缩小对白/人名/字幕，避免占屏过大；平板(高≥768)与桌面不受影响 */
+@media (orientation:landscape) and (pointer:coarse) and (max-height:560px){
+  .vn-layer{padding:0 max(10px,3vw) max(8px,2.4vh);}
+  .dialogue-box{min-height:0;padding:10px 18px 11px;max-width:800px;border-radius:14px;}
+  .dialogue-box::after{inset:4px;border-radius:10px;}
+  .nameplate{top:-12px;left:16px;padding:.26em 1em;font-size:12.5px;border-radius:9px;letter-spacing:.05em;}
+  .dialogue-text{font-size:14px;line-height:1.58;min-height:2.3em;letter-spacing:0;}
+  .narration-box{max-width:660px;padding:13px 20px;font-size:13px;line-height:1.68;}
+  .next-indicator{right:14px;bottom:8px;font-size:12px;}
+}
 
 /* 竖屏旋转提示 —— 默认隐藏，仅触屏 + 竖屏时覆盖显示 */
 .rotate-hint{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;
