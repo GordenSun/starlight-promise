@@ -117,7 +117,7 @@ img{display:block;}
 @keyframes snowfall{0%{opacity:0;transform:translateY(0) translateX(0)}12%{opacity:.9}100%{opacity:.2;transform:translateY(112vh) translateX(40px)}}
 @keyframes floatUp{0%{opacity:0;transform:translateY(20px)}20%{opacity:.9}100%{opacity:0;transform:translateY(-70vh)}}
 
-/* 人物层 —— 真·帧动画：多帧 .cf 叠放，JS 控制各帧透明度做交叉淡入（渐隐渐现，2 帧呼吸往返） */
+/* 人物层 —— 仅显示首帧立绘；呼吸感由 JS 连续 transform（脚底锚定的轻微缩放+起伏）驱动，无帧切换、无渐隐渐现 */
 .stage-chars{position:absolute;inset:0;}
 .char{position:absolute;bottom:-2%;left:50%;height:96%;
   transform:translateX(-50%);will-change:opacity;

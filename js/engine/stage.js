@@ -115,12 +115,14 @@ class Stage {
         phase: Math.random() * 100,
         floatPhase: Math.random() * Math.PI * 2,
         floatRate: 0.5 + Math.random() * 0.25,
+        breathPhase: Math.random() * Math.PI * 2,
+        breathRate: 1.45 + Math.random() * 0.45, // 呼吸周期 ~3.5–4.5s，各角色略有差异
         leftCur: POS[pos] ?? 50, leftTgt: POS[pos] ?? 50,
         enter: 0, enterFrom: (pos.includes('right')) ? 1 : (pos.includes('left') ? -1 : (Math.random() < 0.5 ? -1 : 1)),
         speaking: false, blush: false, reaction: null, shown: true,
       };
       this.chars.set(id, c);
-      this._renderFrames(c, 0); // 初始第一帧可见
+      this._renderFrames(c); // 仅显示首帧立绘
     } else {
       c.leftTgt = POS[pos] ?? 50; c.shown = true;
     }
@@ -159,26 +161,10 @@ class Stage {
 
   reset() { this.hideAll(); this.setParticles(null); this.setTint(null); this.clearDim(); }
 
-  // 真·交叉溶解：当前帧始终不透明垫底，下一帧在其上方用 z-index 压住淡入。
-  // 合成结果始终完全不透明，既有平滑的渐隐渐现，又不会出现「两帧同时半透明→背景透出」的闪烁。
-  _renderFrames(c, p) {
-    const els = c.frameEls;
-    const n = els.length;
-    if (n === 1 || c.playlist.length <= 1) {
-      els.forEach((el, k) => { el.style.opacity = k === 0 ? '1' : '0'; el.style.zIndex = k === 0 ? '2' : '0'; });
-      return;
-    }
-    const L = c.playlist.length;
-    const pos = ((p % L) + L) % L;
-    const i = Math.floor(pos);
-    const frac = pos - i;
-    const cur = c.playlist[i];
-    const nxt = c.playlist[(i + 1) % L];
-    els.forEach((el, k) => {
-      if (k === nxt && k !== cur) { el.style.opacity = frac.toFixed(3); el.style.zIndex = '3'; } // 上层：淡入
-      else if (k === cur) { el.style.opacity = '1'; el.style.zIndex = '2'; }                       // 底层：不透明
-      else { el.style.opacity = '0'; el.style.zIndex = '1'; }
-    });
+  // 仅显示首帧立绘——呼吸感完全由 _loop 的连续 transform（脚底锚定的轻微缩放+起伏）驱动。
+  // 因此没有任何帧切换、没有 opacity 渐隐渐现，呼吸却是连续平滑的。
+  _renderFrames(c) {
+    c.frameEls.forEach((el, k) => { el.style.opacity = k === 0 ? '1' : '0'; });
   }
 
   // ---------------- 主循环 ----------------
@@ -191,22 +177,20 @@ class Stage {
     const stageH = this.stageEl ? this.stageEl.clientHeight : 720;
 
     for (const c of this.chars.values()) {
-      // —— 帧动画推进（呼吸/摇摆）——
-      c.phase += dt * c.fps;
-      this._renderFrames(c, c.phase);
-
       // —— 入场 / 位置 ——
       c.enter += (1 - c.enter) * Math.min(1, dt * 6);
       const enterMiss = 1 - c.enter;
       c.leftCur += (c.leftTgt - c.leftCur) * Math.min(1, dt * 7);
       c.el.style.left = c.leftCur + '%';
 
-      // —— 极轻微浮动（增添重量感，非弹跳）——
-      const float = Math.sin(t * c.floatRate + c.floatPhase);
-      let dx = enterMiss * c.enterFrom * 70;
-      let dy = (c.offsetY / 100) * stageH + float * 2.2;
-      let rot = float * 0.25;
-      let scaleMul = 1;
+      // —— 连续呼吸：脚底锚定的轻微缩放 + 起伏，模拟胸腔呼吸；无帧切换、无渐隐渐现 ——
+      const breath = Math.sin(t * c.breathRate + c.breathPhase); // 呼吸主曲线（~4s 周期）
+      const drift = Math.sin(t * c.floatRate + c.floatPhase);    // 更慢的有机漂移，避免机械感
+      const amp = c.speaking ? 1.35 : 1.0;                       // 说话者呼吸更明显些
+      let dx = enterMiss * c.enterFrom * 70 + drift * 0.6;
+      let dy = (c.offsetY / 100) * stageH + breath * 1.7 * amp + drift * 1.0;
+      let rot = breath * 0.16 * amp + drift * 0.12;
+      let scaleMul = 1 + (breath * 0.5 + 0.5) * 0.012 * amp;      // 吸气微微膨胀(≤~1.2%)、呼气回落
 
       if (c.speaking) dy += -1.5; // 说话时略上抬（强调）
 
