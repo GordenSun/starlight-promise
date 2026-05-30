@@ -226,9 +226,34 @@ class Game {
     this.cgOpen = true;
     const url = `assets/cg/${id}.jpg`;
     this.overlay.className = 'overlay';
-    this.overlay.innerHTML = `<div class="viewer" id="cgView"><img src="${url}" alt="CG" onerror="this.style.display='none'"><div class="vcap">点击继续</div></div>`;
+    this.overlay.innerHTML = `<div class="viewer" id="cgView">
+        <div class="cg-stage"><div class="cg-loading"><span class="cg-spinner"></span><span>结局插画载入中…</span></div></div>
+        <div class="vcap" id="cgCap"></div>
+      </div>`;
     this.overlay.classList.remove('hidden');
-    this.overlay.querySelector('#cgView').onclick = () => { this.hideCG(); vn.advance(); };
+    const view = this.overlay.querySelector('#cgView');
+    const cgStage = view.querySelector('.cg-stage');
+    const cap = view.querySelector('#cgCap');
+
+    // 图片就绪前：点击无效，不显示「点击继续」，无法跳过
+    view.onclick = (e) => { e.stopPropagation(); };
+
+    const ready = (failed) => {
+      cap.textContent = failed ? '插画暂未能载入 · 点击继续' : '点击继续';
+      cap.classList.add('ready');
+      view.onclick = () => { audio.sfx('click'); this.hideCG(); vn.advance(); };
+    };
+
+    const img = new Image();
+    img.alt = 'CG';
+    let tries = 0;
+    const attempt = () => { tries++; img.src = tries === 1 ? url : `${url}?retry=${tries}-${Date.now()}`; };
+    img.onload = () => { cgStage.innerHTML = ''; cgStage.appendChild(img); ready(false); };
+    img.onerror = () => {
+      if (tries < 3) { setTimeout(attempt, 600); }
+      else { cgStage.innerHTML = '<div class="cg-loading"><span>结局插画暂未能载入</span></div>'; ready(true); }
+    };
+    attempt();
     save.unlock('cg', id);
   }
   hideCG() { this.cgOpen = false; this.overlay.classList.add('hidden'); this.overlay.innerHTML = ''; }
@@ -248,6 +273,14 @@ class Game {
     clearTimeout(this._toastTimer);
     this.toastEl.className = 'toast ' + type;
     this.toastEl.textContent = msg;
+    // 动态定位到对白框/旁白框正上方；无可见对话框时回退到 CSS 默认位置
+    const box = document.querySelector('.dialogue-box, .narration-box');
+    const r = box ? box.getBoundingClientRect() : null;
+    if (r && r.height > 0 && r.top > 0 && r.top < window.innerHeight) {
+      this.toastEl.style.bottom = (window.innerHeight - r.top + 12) + 'px';
+    } else {
+      this.toastEl.style.bottom = '';
+    }
     this.toastEl.classList.remove('hidden');
     void this.toastEl.offsetWidth;
     this.toastEl.classList.add('show');

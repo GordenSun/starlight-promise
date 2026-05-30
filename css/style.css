@@ -291,7 +291,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 /* 大图查看 */
 .viewer{position:absolute;inset:0;z-index:60;background:rgba(3,2,10,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:3vh 3vw;}
 .viewer img{max-width:92vw;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.7);}
-.viewer .vcap{margin-top:14px;color:var(--ink-soft);font-size:15px;letter-spacing:.06em;}
+.viewer .vcap{margin-top:14px;color:var(--ink-soft);font-size:15px;letter-spacing:.06em;opacity:0;transition:opacity .4s ease;}
+.viewer .vcap.ready{opacity:1;animation:vcapPulse 1.7s ease-in-out infinite;cursor:pointer;}
+.cg-stage{display:flex;align-items:center;justify-content:center;min-height:30vh;}
+.cg-loading{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--ink-soft);font-size:14px;letter-spacing:.08em;}
+.cg-spinner{width:32px;height:32px;border-radius:50%;border:3px solid rgba(255,255,255,.16);border-top-color:var(--gold);animation:cgspin .8s linear infinite;}
+@keyframes cgspin{to{transform:rotate(360deg)}}
+@keyframes vcapPulse{0%,100%{opacity:.55}50%{opacity:1}}
 .viewer .vclose{position:absolute;top:20px;right:24px;font-size:26px;color:#fff;padding:6px 14px;border-radius:10px;background:rgba(255,255,255,.1);}
 
 /* 回放记录 */
@@ -302,7 +308,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 .log-item.narr .txt{font-style:italic;color:var(--ink-dim);}
 
 /* Toast */
-.toast{position:absolute;left:50%;top:14%;transform:translateX(-50%) translateY(-10px);z-index:70;
+.toast{position:absolute;left:50%;bottom:27vh;top:auto;transform:translateX(-50%) translateY(8px);z-index:70;
   padding:.7em 1.4em;border-radius:30px;font-size:14.5px;letter-spacing:.05em;color:#1a1430;
   background:linear-gradient(120deg,var(--gold),var(--gold-deep));box-shadow:0 10px 30px rgba(0,0,0,.4);
   opacity:0;transition:opacity .3s,transform .3s;white-space:nowrap;}
@@ -349,6 +355,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
   .dialogue-text{font-size:14px;line-height:1.58;min-height:2.3em;letter-spacing:0;}
   .narration-box{max-width:660px;padding:13px 20px;font-size:13px;line-height:1.68;}
   .next-indicator{right:14px;bottom:8px;font-size:12px;}
+  .toast{bottom:21vh;font-size:12.5px;padding:.5em 1.1em;}
 }
 
 /* 竖屏旋转提示 —— 默认隐藏，仅触屏 + 竖屏时覆盖显示 */
